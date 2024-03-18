@@ -28,7 +28,7 @@ jobs:
       - name: Install R packages  # Install R packages if not cached
         if: steps.cache.outputs.cache-hit != 'true'  # Condition to check if cache hit is false
         run: |
-          Rscript -e 'install.packages(c("DBI", "RSQLite", "ggplot2", "lubridate", "readr", "dplyr", "readxl")'  # Install required R packages
+          Rscript -e 'install.packages(c("DBI", "RSQLite", "ggplot2", "lubridate", "readr", "dplyr", "readxl"))'  # Install required R packages
 
 
       - name: Execute R script  # Execute R script
