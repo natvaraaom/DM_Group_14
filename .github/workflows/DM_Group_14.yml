@@ -48,5 +48,5 @@ jobs:
       - name: Push changes  # Push changes to remote repository
         uses: ad-m/github-push-action@v0.6.0  # Use the ad-m/github-push-action
         with:
-          github_token: ${{ secrets.DM_TKN }}  # GitHub token for authentication
+          github_token: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
           branch: main  # Specify the branch to push changes
