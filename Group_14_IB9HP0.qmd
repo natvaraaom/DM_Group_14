@@ -1,0 +1,486 @@
+---
+title: "Report"
+author: "Group 14"
+format: pdf
+editor: visual
+---
+
+# Report
+
+## Part 1: Database Design and Implementation
+
+### 1.1 E-R Diagram Design
+
+![Initial E-R Diagram](images/First%20Diagram.jpg){fig-align="center" width="410"}
+
+![Final E-R Diagram](images/Final%20Diagram.jpg){fig-align="center" width="506"}
+
+At the initial creation, our group developed an Entity-Relationship (E-R) diagram with nine entities, namely Supplier, Product, Ads, Category, Inventory, Customer, Order, Payment, and Shipping, interconnected by eleven relationships (Figure 1).
+
+Each entity had a primary key for the unique identification of instances within the entities, related attributes, and a foreign key as needed.
+
+However, deeper examination revealed several shortcomings in the initial E-R diagram. When trying to convert it into the schema, the database proved to be incompatible with the third normal form (3NF). Hence, a series of adjustments were made, such as adding and removing entities, relationships, and attributes to rectify these problems.
+
+To improve the structural integrity of the database, we eliminated the Order, Category, and Ads entities. The decision to remove Order as an entity originated from its more fitting role as a relationship, between the Customer and Product entities. This prevents the redundant functionality of the diagram, but also ensures a more coherent and simplified design. Furthermore, the Category entity was eliminated and changed to an attribute under the Product entity to make the synthetic data more reflective or real-life scenarios. Ads were removed to reduce the complexity of data generation and eliminate potential maintenance challenges.
+
+Additionally, several looping relationships were detected, which created redundancy in the data storage of the database.
+
+For example, as also seen in Figure 1, the existing setup included a relationship between Supplier and both the Product and Inventory entities, alongside with a relationship between Product and Inventory. This led to unnecessary duplication within the database. Hence, we chose to eliminate the direct relationship between Supplier and Inventory. The PRODUCT_ID was then used as a linkage to reduce redundancies and ensure integrity. Figure 1 also shows a loop between Customers, Payment, and Shipping. This was handled similarly. 
+
+Consequently, these modifications led in a reduction from eleven to five total relationships.
+
+Finally, we addressed three attributes that were identified as non-atomic. These included SHIPMENT_ADDRESS, BILLING_ADDRESS, and DESCRIPTION. To enhance granularity and facilitate better data management, more attributes for city, country, and zip code. These were adjusted to ensure that the data are more structured and in a manageable format.
+
+Moreover, we opted to remove the DESCRIPTION attribute since it created a redundancy, as the PRODUCT_CATEGORY was also present. PRODUCT_ID was also removed from the Supplier entity as the SUPPLIER_ID attribute was already existing in the Product entity. This ensures consistency in key attributes across related entities, while it also enabled us to Supplier as a starting point of the schema creation. This was because the entity had no foreign key. Lastly, we recognized the absence of a primary key in the Inventory entity, thus, INVENTORY_ID was created.
+
+Following these adjustments, a final E-R diagram was created, as shown in Figure 2, to accommodate a database complying with the third normal form (3NF). The final diagram comprises six core entities: Supplier, Product, Inventory, Customer, Payment, and Shipping, interconnected by five relationships.
+
+### 1.2 SQL Database Schema Creation
+
+The initial schema, created based on the initial E-R Diagram consisting of nine tables, revealed deficiencies in normalization, not complying with the 3NF. This resulted in redundancies and dependency issues, as highlighted during the E-R Diagram Design phase.
+
+To rectify these deficiencies, we targeted unnecessary entities, redundant relationships, and non-atomic attributes. Consequently, the final database schema consisting of six tables
+
+\- Supplier, Product, Inventory, Customer, Payment, and Shipping -- was created (Figure 4).
+
+This schema was implemented using SQL code, incorporating all attributes as columns within the tables. The primary key and foreign key of each entity were also determined.
+
+Additionally, thorough attention was devoted to specifying the data type of each attribute or column within the tables. For example, attributes like SUPPLIER_NAME were designed as text, PRICE as numeric, and CUSTOMER_BIRTHDAY as date. This helps in organizing and managing the data while maintaining consistency and integrity.
+
+The assumptions used for the final E-R diagram and Schema:
+
+1.      A single product may be sourced from multiple providers.
+
+2.      The same product can be stored across multiple shelves depending on product quantity.
+
+3.      Each customer can order multiple products, and each product can be bought by several customers.
+
+4.      A single customer can make many payments; however, each is associated with only one customer.
+
+5.      Each shipment is only associated with only one payment.
+
+All the relationships between entities are also illustrated in Figure 3 and 4.
+
+![Figure 3: Relationship Set](images/Logical.jpg){fig-align="center" width="388"}
+
+![Figure 4: Relational Schema](images/Relational%20Schema.png){fig-align="center" width="366"}
+
+## Part 2: Data Generation and Validation
+
+```{r message = FALSE, warning=FALSE}
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(readr)
+library(RSQLite)
+library(DBI)
+library(readxl)
+library(gridExtra)
+```
+
+```{r message = FALSE, warning=FALSE}
+db <- dbConnect(RSQLite::SQLite(), dbname = "Database/e_commerce_database.db")
+```
+
+Our database project involved two critical stages: data generation and population, followed by thorough checks to ensure data integrity and normalization. In this report, we detail our meticulous approach to each stage and the strategies employed to achieve our objectives.
+
+### **2.1 Data Generation**
+
+*Generating Datasets:* Our journey commenced with the generation of datasets from scratch. Leveraging advanced language models such as ChatGPT, we carefully crafted six distinct datasets tailored to specific entities: products, suppliers, customers, payments, shipping, and additional auxiliary data. Each dataset was carefully curated to meet the requirements of our database schema and adhere to normalization forms.
+
+*Product and Supplier Data:* To populate the product dataset, ChatGPT was employed to generate unique product names paired with relevant categories. Supplier information was sourced to align with product categories, ensuring coherence and relevance within the dataset.
+
+*Customer and Payment Information:* For customer data, we focused on generating realistic names by dividing them into first and last names. Subsequently, Python scripting was utilized to merge these names and append random email domains such as Yahoo, Gmail, Hotmail, and Outlook to enhance authenticity. Payment information was enriched to include relevant details like payment addresses.
+
+*Shipping and Additional Data:* Similar strategies were employed for shipping data, enriching fields such as shipment dates and addresses to ensure contextual coherence. Additional auxiliary data, including irrelevant fields like date of birth and UK-based phone numbers, were handled judiciously, ensuring they were either enriched or omitted based on relevance.
+
+*Key Placement and Cross-Referencing:* Key placement was a critical aspect of our database design. We ensured that primary and foreign keys were appropriately placed to establish relationships between tables. Cross-referencing between entities, particularly among customers, payments, and shipping, was carefully implemented during creating those datasets in order to maintain data integrity and facilitate seamless data retrieval.
+
+### **2.2. Data Import and Quality Assurance**
+
+*Entity Population:* After generating datasets, we proceeded to load them followed by populating our entities or tables, in other words, we applied the ETL process. Each dataset was accurately inserted into its corresponding table, following the relational schema designed for our database.
+
+*Normalization Checks:* Once the entities were populated, rigorous checks were conducted to ensure adherence to normalization principles, specifically targeting 2NF and 3NF. We thoroughly examined each table for redundancy, dependency, and anomalies, rectifying any inconsistencies identified during the process.
+
+```{r message = FALSE, warning=FALSE}
+# Define SQL commands for creating tables using DDL or Data Defination language
+sql_commands <- c(
+  "CREATE TABLE IF NOT EXISTS Supplier (
+    SUPPLIER_ID VARCHAR(255) PRIMARY KEY NOT NULL,
+    SUPPLIER_NAME VARCHAR(255) NOT NULL,
+    SUPPLIER_PHONE VARCHAR(255),
+    SUPPLIER_EMAIL VARCHAR(255)
+  );",
+  "CREATE TABLE IF NOT EXISTS Product (
+    PRODUCT_ID VARCHAR(255) PRIMARY KEY NOT NULL,
+    PRODUCT_NAME VARCHAR(255) NOT NULL,
+    PRODUCT_CATEGORY VARCHAR(255),
+    PRICE FLOAT NOT NULL,
+    SUPPLIER_ID VARCHAR(255) NOT NULL,
+    FOREIGN KEY(SUPPLIER_ID) REFERENCES Supplier(SUPPLIER_ID)
+  );",
+  "CREATE TABLE IF NOT EXISTS Inventory (
+    INVENTORY_ID VARCHAR(255) PRIMARY KEY NOT NULL,
+    STOCK INTEGER NOT NULL,
+    SHELF_NO VARCHAR(255),
+    PRODUCT_ID VARCHAR(255) NOT NULL,
+    FOREIGN KEY(PRODUCT_ID) REFERENCES Product(PRODUCT_ID)
+  );",
+  "CREATE TABLE IF NOT EXISTS Customer (
+    CUSTOMER_ID VARCHAR(255) PRIMARY KEY NOT NULL,
+    CUSTOMER_FIRSTNAME VARCHAR(255) NOT NULL,
+    CUSTOMER_LASTNAME VARCHAR(255) NOT NULL,
+    CUSTOMER_EMAIL VARCHAR(255),
+    CUSTOMER_PHONE VARCHAR(255),
+    CUSTOMER_BIRTHDAY DATE,
+    CUSTOMER_GENDER VARCHAR(50),
+    SHIPMENT_ID VARCHAR(255),
+    PAYMENT_ID VARCHAR(255)
+  );",
+  "CREATE TABLE IF NOT EXISTS Shipment (
+    SHIPMENT_ID VARCHAR(255) PRIMARY KEY NOT NULL,
+    SHIPMENT_DATE DATE NOT NULL,
+    SHIPMENT_ADDRESS VARCHAR(255) NOT NULL,
+    SHIPMENT_CITY VARCHAR(255) NOT NULL,
+    SHIPMENT_ZIPCODE VARCHAR(255) NOT NULL,
+    SHIPMENT_COUNTRY VARCHAR(255) NOT NULL,
+    CUSTOMER_ID VARCHAR(255) NOT NULL,
+    PRODUCT_ID VARCHAR(255) NOT NULL,
+    FOREIGN KEY(CUSTOMER_ID) REFERENCES Customer(CUSTOMER_ID),
+    FOREIGN KEY(PRODUCT_ID) REFERENCES Product(PRODUCT_ID)
+  );",
+  "CREATE TABLE IF NOT EXISTS Payment (
+    PAYMENT_ID VARCHAR(255) PRIMARY KEY NOT NULL,
+    PAYMENT_METHOD VARCHAR(255) NOT NULL,
+    ORDER_AMOUNT FLOAT NOT NULL,
+    PAYMENT_DATE DATE NOT NULL,
+    BILLING_ADDRESS VARCHAR(255) NOT NULL,
+    BILLING_CITY VARCHAR(255) NOT NULL,
+    BILLING_ZIPCODE VARCHAR(255) NOT NULL,
+    BILLING_COUNTRY VARCHAR(255) NOT NULL,
+    CUSTOMER_ID VARCHAR(255) NOT NULL,
+    PRODUCT_ID VARCHAR(255) NOT NULL,
+    FOREIGN KEY(CUSTOMER_ID) REFERENCES Customer(CUSTOMER_ID),
+    FOREIGN KEY(PRODUCT_ID) REFERENCES Product(PRODUCT_ID)
+  );"
+)
+
+# Execute each SQL command to create the tables
+for(sql_command in sql_commands) {
+  dbExecute(db, sql_command)
+}
+
+# ETL process for Extraqcting data and laoding Data
+# Read data from CSV files
+suppliers_data <- read_csv('Data/supplier_ecommerce.csv')
+products_data <- read_csv('Data/products_ecommerce.csv')
+inventories_data <- read_csv('Data/inventory_ecommerce.csv')
+customers_data <- read_csv('Data/customers_ecommerce.csv')
+shipments_data <- read_csv('Data/shipment_ecommerce.csv')
+payments_data <- read_csv('Data/payments_ecommerce.csv')
+
+# Insert data into tables
+dbWriteTable(db, "Supplier", suppliers_data, overwrite = TRUE)
+dbWriteTable(db, "Product", products_data, overwrite = TRUE)
+dbWriteTable(db, "Inventory", inventories_data, overwrite = TRUE)
+dbWriteTable(db, "Customer", customers_data, overwrite = TRUE)
+dbWriteTable(db, "Shipment", shipments_data, overwrite = TRUE)
+dbWriteTable(db, "Payment", payments_data, overwrite = TRUE)
+
+dbDisconnect(db)
+```
+
+```{r message = FALSE, warning=FALSE}
+# Connect to the SQLite database
+db <- dbConnect(RSQLite::SQLite(), dbname = "Database/e_commerce_database.db")
+```
+
+## Part 4: Data Analysis and Reporting with Quarto in R
+
+### Average Price for each Product Category
+
+```{r message = FALSE, warning=FALSE}
+category_price_summary <- dbGetQuery(db, "
+SELECT 
+  PRODUCT_CATEGORY, 
+  AVG(PRICE) AS AveragePrice
+FROM 
+  Product
+GROUP BY 
+  PRODUCT_CATEGORY
+ORDER BY 
+  AveragePrice DESC;")
+
+ggplot(category_price_summary, aes(x = reorder(PRODUCT_CATEGORY, AveragePrice), y =            AveragePrice)) +
+geom_col(fill = "skyblue", color = "black") +
+geom_text(aes(label = round(AveragePrice, 2)), hjust = -0.2, color = "black") +
+theme_minimal() +
+coord_flip() + 
+labs(title = "Average Price by Product Category",
+      x = "Product Category",
+      y = "Average Price") +
+theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+The product category with the highest average price point in our ecommerce store is Jewelry and Accessories, closely followed by Electronics as the second most expensive category. This finding suggests that customers are willing to invest significant amounts in luxury items such as jewelry and accessories, as well as in high-value electronic products. Understanding these purchasing patterns can guide inventory management decisions, marketing strategies, and pricing adjustments to capitalize on the demand for these premium product categories. Additionally, it may indicate opportunities for targeted promotions, bundling deals, or product diversification within these categories to enhance profitability and customer satisfaction.
+
+### Top 10 products by sales amount
+
+```{r message = FALSE, warning=FALSE}
+#sales_category_data <- payments_data %>%
+#  left_join(products_data, by = "PRODUCT_ID") %>%
+#  group_by(PRODUCT_CATEGORY) %>%
+#  summarise(Total_Sales = sum(ORDER_AMOUNT), .groups = 'drop') %>%
+#  arrange(desc(Total_Sales)) %>%
+#  slice_head(n = 10)  # Select only the top 10 product categories based on total sales
+
+#plot_ly(data = sales_category_data) %>%
+#  add_bars(x = ~PRODUCT_CATEGORY, y = ~Total_Sales, color = ~PRODUCT_CATEGORY, colors = "Pastel1") %>%
+#  layout(title = "Top 10 Product Categories by Total Sales")
+#  layout(title = "Top 10 Product Categories by Total Sales",
+ #        xaxis = list(title = "Product Category"),
+  #       yaxis = list(title = "Total Sales ($)"),
+   #      colorway = RColorBrewer::brewer.pal(8, "Dark2"))
+```
+
+The graph above illustrates the top 10 products based on their sales performance, showcasing those with the highest sales figures. This visual representation provides a clear overview of the products that have exhibited exceptional sales performance within the analyzed period
+
+### ANALYSIS ON PAYMENT METHODS
+
+```{r message = FALSE, warning=FALSE}
+library(gridExtra)
+payment_methods_usage <- dbGetQuery(db, "
+SELECT PAYMENT_METHOD, COUNT(*) AS Frequency
+FROM Payment
+GROUP BY PAYMENT_METHOD
+ORDER BY Frequency DESC")
+
+
+library(RColorBrewer)
+plot1 = ggplot(payment_methods_usage, aes(x = reorder(PAYMENT_METHOD, -Frequency), y = Frequency)) +
+  geom_col(fill = "orange", color = "black") +
+  theme_minimal(base_size = 7) + 
+  labs(title = "Frequency of Payment Methods Usage",
+       x = "Payment Method",
+       y = "Frequency") +
+  geom_text(aes(label = Frequency), vjust = -0.3, size = 5) + 
+  theme(axis.text.x = element_text(angle = 40, hjust = 1, color = "darkblue"), 
+        axis.title.x = element_text(size = 12, face = "bold", color = "black"), 
+        axis.title.y = element_text(size = 12, face = "bold", color = "black"), 
+        plot.title = element_text(size = 10, face = "bold", color = "black"), 
+        ) +
+  scale_y_continuous(limits = c(0, 250), 
+                     breaks = seq(0, 300, by = 50)) 
+
+payment_methods_amounts <- dbGetQuery(db, "
+SELECT PAYMENT_METHOD, AVG(ORDER_AMOUNT) AS AverageAmount
+FROM Payment
+GROUP BY PAYMENT_METHOD
+ORDER BY AverageAmount DESC")
+
+plot2 = ggplot(payment_methods_amounts, aes(x = reorder(PAYMENT_METHOD, -AverageAmount), y = AverageAmount, fill = PAYMENT_METHOD)) +
+  geom_col(show.legend = FALSE) + 
+  coord_flip() +  
+  scale_fill_brewer(palette = "Accent") + 
+  theme_minimal() + 
+  theme(axis.title.x = element_text(face = "bold"), 
+        axis.title.y = element_text(face = "bold"), 
+        axis.text.x = element_text(size = 10), 
+        axis.text.y = element_text(size = 10), 
+        plot.title = element_text(size = 10, hjust = 0.5, face = "bold"), 
+        panel.background = element_rect(fill = "white", colour = "grey50"), 
+        panel.grid.major = element_line(linewidth = 0.5, linetype = 'solid', colour =           "grey90")) + 
+  labs(title = "Average Order Amount by Payment Method",
+        x = "Payment Method", 
+        y = "Average Order Amount") +
+  geom_text(aes(label = round(AverageAmount, 0)), vjust = -0.3, size = 5)
+
+grid.arrange(plot1, plot2, ncol = 2)
+```
+
+The payment method most commonly utilized by customers is debit cards, closely followed by PayPal, credit cards, Apple Pay, and Klarna, in that order. Notably, customers tend to use Klarna and credit cards for higher-value purchases. the use of Klarna and credit cards for expensive products implies a willingness among customers to leverage installment-based payment solutions or credit facilities for larger purchases, potentially indicating greater purchasing power or a desire for flexible payment options. This insight can inform strategic decisions related to payment processing systems, marketing strategies, and product pricing to better accommodate customer preferences and optimize sales strategies.
+
+### Quarterly trend for sales.
+
+```{r message = FALSE, warning=FALSE}
+sales_trends <- dbGetQuery(db, "
+WITH CorrectedDates AS (
+  SELECT
+    PAYMENT_ID,
+    CASE
+      WHEN LENGTH(PAYMENT_DATE) = 10 THEN
+        SUBSTR(PAYMENT_DATE, 7, 4) || '-' ||
+        SUBSTR(PAYMENT_DATE, 4, 2) || '-' ||
+        SUBSTR(PAYMENT_DATE, 1, 2) -- 日
+      ELSE PAYMENT_DATE
+    END AS CorrectedDate,
+    PAYMENT_METHOD,
+    ORDER_AMOUNT
+  FROM Payment
+  WHERE PAYMENT_DATE IS NOT NULL AND LENGTH(PAYMENT_DATE) = 10
+),
+DateParts AS (
+  SELECT
+    PAYMENT_ID,
+    PAYMENT_METHOD,
+    ORDER_AMOUNT,
+    STRFTIME('%Y', CorrectedDate) AS YEAR,
+    'Q' || CAST((CAST(STRFTIME('%m', CorrectedDate) AS INTEGER) + 2) / 3 AS TEXT) AS QUARTER
+  FROM CorrectedDates
+)
+SELECT
+  YEAR,
+  QUARTER,
+  SUM(ORDER_AMOUNT) AS TotalAmount
+FROM DateParts
+GROUP BY YEAR, QUARTER
+ORDER BY YEAR, QUARTER;
+")
+
+sales_trends$YearQuarter <- with(sales_trends, paste(YEAR, QUARTER))
+
+plot1 <- ggplot(sales_trends, aes(x = YearQuarter, y = TotalAmount)) +
+  geom_line(aes(group = 1), colour = "lightgreen", linewidth = 1) +
+  geom_point(colour = "violet", size = 2) +
+  theme_light(base_size = 14) +
+  labs(
+    title = "Quarterly Sales Amount Trend",
+    subtitle = "Total sales amount across different quarters",
+    x = "Year and Quarter",
+    y = "Total Sales Amount ($)"
+  ) +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+    axis.title.x = element_text(size = 14), 
+    axis.title.y = element_text(size = 14), 
+    legend.position = "none"
+  )
+
+order_counts <- dbGetQuery(db, "
+WITH CorrectedDates AS (
+    SELECT
+        PAYMENT_ID,
+        CASE
+            WHEN LENGTH(PAYMENT_DATE) = 10 THEN
+            SUBSTR(PAYMENT_DATE, 7, 4) || '-' ||
+            SUBSTR(PAYMENT_DATE, 4, 2) || '-' ||
+            SUBSTR(PAYMENT_DATE, 1, 2) 
+            ELSE PAYMENT_DATE
+        END AS CorrectedDate,
+        PAYMENT_METHOD,
+        ORDER_AMOUNT
+    FROM Payment
+    WHERE PAYMENT_DATE IS NOT NULL AND LENGTH(PAYMENT_DATE) = 10
+),
+DateParts AS (
+    SELECT
+        PAYMENT_ID,
+        PAYMENT_METHOD,
+        ORDER_AMOUNT,
+        STRFTIME('%Y', CorrectedDate) AS YEAR,
+        'Q' || CAST((CAST(STRFTIME('%m', CorrectedDate) AS INTEGER) + 2) / 3 AS TEXT) AS QUARTER 
+    FROM CorrectedDates
+)
+SELECT
+    YEAR,
+    QUARTER,
+    COUNT(PAYMENT_ID) AS OrderCount
+FROM DateParts
+GROUP BY YEAR, QUARTER
+ORDER BY YEAR, QUARTER;
+")
+
+order_counts$YearQuarter <- with(order_counts, paste(YEAR, QUARTER))
+order_counts$YearQuarter <- factor(order_counts$YearQuarter, levels = unique(order_counts$YearQuarter))
+
+plot2 <- ggplot(order_counts, aes(x = YearQuarter, y = OrderCount)) +
+  geom_line(aes(group = 1), colour = "dodgerblue", size = 1) +
+  geom_point(colour = "darkorange", size = 3, shape = 18) +
+  scale_x_discrete(limits = order_counts$YearQuarter) + 
+  theme_minimal(base_size = 14) +
+  labs(title = "Quarterly Order Count Trend",
+       subtitle = "Total order count across different quarters",
+       x = "Year and Quarter",
+       y = "Order Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+        axis.text.y = element_text(size = 12),
+        plot.title = element_text(size = 16, face = "bold"),
+        legend.position = "none",
+        panel.grid.major = element_line(color = "grey90"),
+        panel.grid.minor = element_line(color = "grey95"),
+        panel.background = element_rect(fill = "grey98"))
+grid.arrange(plot1, plot2, ncol = 2)
+```
+
+The fluctuating sales trends indicate a degree of market volatility or shifts in consumer behavior during the observed period. The initial increase in sales during 2022 Q2 suggests potential factors such as seasonal trends, marketing initiatives, or product launches driving heightened consumer demand. Subsequent declines in sales during 2023 Q1 to Q2 may reflect challenges such as economic downturns, competitive pressures, or shifts in consumer preferences impacting purchasing patterns negatively. However, the resurgence in sales during 2023 Q4 indicates the potential effectiveness of strategic interventions or market adjustments implemented to stimulate demand and regain momentum.
+
+### Top 10 Cities with Highest Order Amount from the Store
+
+```{r message = FALSE, warning=FALSE}
+city_sales <- dbGetQuery(db, "
+SELECT 
+    BILLING_CITY, 
+    SUM(ORDER_AMOUNT) AS TotalSales,
+    AVG(ORDER_AMOUNT) AS AverageAmount
+FROM 
+    Payment
+GROUP BY
+    BILLING_CITY
+ORDER BY 
+    TotalSales DESC
+LIMIT 10")
+
+ggplot(city_sales, aes(x = reorder(BILLING_CITY, -TotalSales), y = TotalSales)) +
+  geom_col(fill = '#4D80E4') +
+  theme_minimal(base_size = 12) +
+  labs(title = "Top 10 Cities by Total Sales", x = "City", y = "Total Sales") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
+
+```
+
+The above graph illustrates that Aberdeen contributes the highest sales revenue, nearly reaching £15,000, followed by Leeds, Swindon, Brighton, and London.
+
+### Customer Segmentation Across Generational Cohorts
+
+```{r message = FALSE, warning=FALSE}
+
+str(customers_data)
+
+# Convert dates to Date objects, assuming the format is month-day-year
+customers_data$CUSTOMER_BIRTHDAY <- mdy(customers_data$CUSTOMER_BIRTHDAY)
+
+# Now we can safely extract the year
+customers_data$BirthYear <- year(customers_data$CUSTOMER_BIRTHDAY)
+
+
+
+customers_data <- customers_data %>%
+  mutate(Generation = case_when(
+    BirthYear >= 1928 & BirthYear <= 1945 ~ "Silent Generation",
+    BirthYear >= 1946 & BirthYear <= 1964 ~ "Baby Boomers",
+    BirthYear >= 1965 & BirthYear <= 1980 ~ "Generation X",
+    BirthYear >= 1981 & BirthYear <= 1996 ~ "Millennials",
+    BirthYear >= 1997 & BirthYear <= 2012 ~ "Generation Z",
+    BirthYear >= 2013 ~ "Generation Alpha",
+    TRUE ~ "Unknown" # for any data that doesn't fit the above categories
+  ))
+
+
+ggplot(customers_data, aes(x = Generation)) +
+  geom_bar(fill = "cornflowerblue") +
+  labs(title = "Distribution of Customers by Generation",
+       x = "Generation",
+       y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+library(plotly)
+
+plot_ly(customers_data, x = ~Generation, type = 'histogram', marker = list(color = 'lightsalmon')) %>%
+  layout(title = "Distribution of Customers by Generation",
+         xaxis = list(title = "Generation"),
+         yaxis = list(title = "Count"))
+```
+
+The depicted graph indicates that the primary customer demographic for this ecommerce platform comprises individuals from Generation Z. This insight presents an opportunity for the company to refine its marketing strategies by tailoring advertisements and commercials to resonate more effectively with this specific audience segment.
